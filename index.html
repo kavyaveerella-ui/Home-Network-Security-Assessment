@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Network Security Assessment</title>
+  <meta name="description" content="Interactive security assessment dashboard for home network devices — real-time risk scoring, vulnerability analysis, and hardening checklist." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  HEADER                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <header class="dashboard-header" role="banner">
+
+    <!-- Brand -->
+    <div class="header-brand">
+      <div class="brand-icon" aria-hidden="true">🛡️</div>
+      <div class="brand-text">
+        <h1>Network Security Assessment</h1>
+        <span class="brand-subtitle">Home Network · Live Analysis</span>
+      </div>
+    </div>
+
+    <!-- Overall security score ring -->
+    <div class="header-score" title="Overall Network Security Score">
+      <div class="score-ring-wrap">
+        <svg class="score-ring" viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="50" class="ring-bg"/>
+          <circle cx="60" cy="60" r="50" class="ring-fill" id="header-score-ring"/>
+        </svg>
+        <div class="score-text">
+          <span class="score-number" id="overall-score">--</span>
+          <span class="score-label">Score</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="header-stats" role="group" aria-label="Network statistics">
+      <div class="stat-card" id="stat-card-devices">
+        <span class="stat-value" id="stat-devices">--</span>
+        <span class="stat-label">Devices</span>
+      </div>
+      <div class="stat-card danger" id="stat-card-critical">
+        <span class="stat-value" id="stat-critical">--</span>
+        <span class="stat-label">Critical</span>
+      </div>
+      <div class="stat-card warning" id="stat-card-high">
+        <span class="stat-value" id="stat-high">--</span>
+        <span class="stat-label">High Risk</span>
+      </div>
+      <div class="stat-card" id="stat-card-threats">
+        <span class="stat-value" id="stat-threats">0</span>
+        <span class="stat-label">Threats</span>
+      </div>
+    </div>
+
+    <!-- Live badge & clock -->
+    <div class="header-meta">
+      <div class="scan-info">
+        <span class="scan-badge" role="status">● LIVE</span>
+        <span class="scan-time" id="scan-time">Initialising...</span>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!--  MAIN LAYOUT                                             -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <main class="dashboard-main" role="main">
+
+    <!-- ── Left Sidebar: device list ──────────────────────── -->
+    <aside class="sidebar" aria-label="Device list">
+      <div class="sidebar-header">
+        <h2>Devices</h2>
+        <span class="device-count" id="device-count-badge" aria-live="polite">--</span>
+      </div>
+      <nav class="device-list" id="device-list" aria-label="Network devices">
+        <!-- populated by dashboard.js -->
+      </nav>
+    </aside>
+
+    <!-- ── Center: Network topology canvas ────────────────── -->
+    <section class="topology-panel" aria-label="Network topology">
+      <div class="panel-header">
+        <h2>Network Topology</h2>
+        <div class="topology-controls" role="group" aria-label="View toggle">
+          <button class="ctrl-btn active" id="btn-view-topology" aria-pressed="true">Topology</button>
+          <button class="ctrl-btn"        id="btn-view-matrix"   aria-pressed="false">Risk Matrix</button>
+        </div>
+      </div>
+
+      <div class="topology-container">
+        <!-- Animated canvas topology map -->
+        <canvas id="network-canvas" role="img" aria-label="Interactive network topology map — click a device node to view details"></canvas>
+
+        <!-- Risk matrix card grid (hidden by default) -->
+        <div class="risk-matrix" id="risk-matrix" style="display:none" role="list" aria-label="Device risk matrix">
+          <!-- populated by dashboard.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Right Panel: Details / Checklist / Threats ─────── -->
+    <aside class="detail-panel" id="detail-panel" aria-label="Detail and analysis panel">
+
+      <!-- Tabs -->
+      <div class="panel-tabs" role="tablist" aria-label="Panel sections">
+        <button class="tab-btn active" role="tab" aria-selected="true"  aria-controls="content-details"   data-tab="details"   id="tab-details">Details</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="content-checklist" data-tab="checklist" id="tab-checklist">Checklist</button>
+        <button class="tab-btn"        role="tab" aria-selected="false" aria-controls="content-threats"   data-tab="threats"   id="tab-threats">
+          Threats
+          <span class="tab-badge" id="threat-badge" aria-label="threat count">0</span>
+        </button>
+      </div>
+
+      <!-- ── Tab: Details ─────────────────────────────────── -->
+      <div class="tab-content active" id="content-details" role="tabpanel" aria-labelledby="tab-details">
+
+        <!-- Empty state -->
+        <div class="no-selection" id="no-device-selected">
+          <div class="no-selection-icon" aria-hidden="true">🖱️</div>
+          <p>Click any device on the<br>network map to view its<br>security assessment</p>
+        </div>
+
+        <!-- Device detail (populated on selection) -->
+        <div class="device-detail" id="device-detail-content" style="display:none" aria-live="polite">
+          <!-- injected by dashboard.js → showDeviceDetail() -->
+        </div>
+
+      </div>
+
+      <!-- ── Tab: Checklist ───────────────────────────────── -->
+      <div class="tab-content" id="content-checklist" role="tabpanel" aria-labelledby="tab-checklist">
+
+        <div class="checklist-header">
+          <div class="checklist-score-row">
+            <span class="checklist-label">Security Posture</span>
+            <span class="checklist-pct" id="checklist-pct" aria-live="polite">0%</span>
+          </div>
+          <div class="checklist-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Security posture progress">
+            <div class="checklist-progress-fill" id="checklist-progress"></div>
+          </div>
+        </div>
+
+        <div class="checklist-container" id="checklist-container" role="list" aria-label="Security hardening checklist">
+          <!-- populated by checklist.js -->
+        </div>
+
+      </div>
+
+      <!-- ── Tab: Threats ─────────────────────────────────── -->
+      <div class="tab-content" id="content-threats" role="tabpanel" aria-labelledby="tab-threats">
+
+        <div class="threats-header">
+          <h3>Live Threat Feed</h3>
+          <div class="threat-filters" role="group" aria-label="Filter by severity">
+            <button class="filter-btn active" data-severity="all"      id="filter-all">All</button>
+            <button class="filter-btn"        data-severity="critical" id="filter-critical">Critical</button>
+            <button class="filter-btn"        data-severity="high"     id="filter-high">High</button>
+            <button class="filter-btn"        data-severity="medium"   id="filter-medium">Medium</button>
+          </div>
+        </div>
+
+        <div class="threats-list" id="threats-list" role="log" aria-label="Security threat events" aria-live="polite">
+          <!-- populated by threats.js -->
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- ── Scripts (order matters) ──────────────────────────── -->
+  <script src="js/devices.js"></script>
+  <script src="js/network.js"></script>
+  <script src="js/checklist.js"></script>
+  <script src="js/threats.js"></script>
+  <script src="js/dashboard.js"></script>
+
+</body>
+</html>
